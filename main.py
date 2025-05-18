@@ -88,7 +88,16 @@ def search_song():
         app.logger.error(f"An unexpected error occurred: {e}") # Log the error
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
+
 if __name__ == '__main__':
     # Run the Flask app
-    # Debug mode should be False in a production environment
-    app.run(debug=True, port=8000) # Runs on http://127.0.0.1:5000
+    # Debug mode should be False in a production environment like Koyeb.
+    # Koyeb will set the PORT environment variable, which Flask can use.
+    # Binding to '0.0.0.0' is crucial for the app to be reachable in a container.
+    port = int(os.environ.get('PORT', 8000)) # Use Koyeb's PORT or default to 8000
+    # For production on Koyeb, debug should ideally be False.
+    # You can control debug mode via an environment variable if needed.
+    # DEBUG_MODE = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=True) # Set debug=False for production
+    # The app will be accessible at http://0.0.0.0:PORT/ within the container
+    # and through Koyeb's public URL.
