@@ -20,8 +20,8 @@ CORS(app) # Enable CORS for all routes, allowing your frontend to call this back
 # SPOTIPY_CLIENT_SECRET='YOUR_CLIENT_SECRET'
 # These will also need to be set as environment variables in your Koyeb service settings.
 
-CLIENT_ID = '66e7d064dbdc421d8a3b9b2faac6d408'
-CLIENT_SECRET = 'ccd204ab13c84096b148b3c1091084a8'
+CLIENT_ID = ''
+CLIENT_SECRET = ''
 
 # Initialize Spotipy instance variable
 sp = None
