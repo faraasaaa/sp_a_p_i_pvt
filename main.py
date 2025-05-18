@@ -1,4 +1,3 @@
-# backend.py
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS # For handling Cross-Origin Resource Sharing
@@ -7,6 +6,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from dotenv import load_dotenv
 
 # Load environment variables from a .env file
+# This should be called as early as possible
 load_dotenv()
 
 # Initialize Flask app
@@ -18,31 +18,34 @@ CORS(app) # Enable CORS for all routes, allowing your frontend to call this back
 # and add your Spotify API credentials like this:
 # SPOTIPY_CLIENT_ID='YOUR_CLIENT_ID'
 # SPOTIPY_CLIENT_SECRET='YOUR_CLIENT_SECRET'
+# These will also need to be set as environment variables in your Koyeb service settings.
 
 CLIENT_ID = '66e7d064dbdc421d8a3b9b2faac6d408'
 CLIENT_SECRET = 'ccd204ab13c84096b148b3c1091084a8'
 
-# Check if credentials are set
+# Initialize Spotipy instance variable
+sp = None
+
+# Check if credentials are set and initialize Spotipy
 if not CLIENT_ID or not CLIENT_SECRET:
     print("Error: SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET must be set as environment variables.")
-    print("Create a .env file with these values.")
-    # You might want to exit or raise an exception here in a real app
-    # For now, we'll let it proceed, but Spotipy will fail.
-
-# Initialize Spotipy with Client Credentials Flow
-# This flow is suitable for backend services where you don't need user-specific data
-# If you need user-specific data (like their private playlists), you'd use Authorization Code Flow
-try:
-    auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
-    sp = spotipy.Spotify(auth_manager=auth_manager)
-except Exception as e:
-    print(f"Error initializing Spotipy: {e}")
-    sp = None # Set sp to None if initialization fails
+    print("Please ensure these are in your .env file for local development or configured in your deployment environment (e.g., Koyeb).")
+    # In a real app, you might want to prevent the app from starting or handle this more gracefully.
+else:
+    try:
+        auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
+        sp = spotipy.Spotify(auth_manager=auth_manager)
+        print("Spotipy initialized successfully.")
+    except Exception as e:
+        print(f"Error initializing Spotipy: {e}")
+        # sp remains None, and routes will handle this
 
 @app.route('/')
 def home():
     """A simple route to check if the backend is running."""
-    return "Spotify search backend is running!"
+    if not sp:
+        return "Spotify search backend is running, but Spotipy is NOT initialized. Check credentials and logs."
+    return "Spotify search backend is running and Spotipy is initialized!"
 
 @app.route('/search', methods=['GET'])
 def search_song():
@@ -87,7 +90,6 @@ def search_song():
         # Handle other potential errors
         app.logger.error(f"An unexpected error occurred: {e}") # Log the error
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
-
 
 if __name__ == '__main__':
     # Run the Flask app
